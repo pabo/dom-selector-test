@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>domSelector linearGradient Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .failure {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        svg {
+            border: 1px dashed #ccc;
+            margin: 10px 0;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>domSelector linearGradient Test</h1>
+    
+    <div class="test-container">
+        <h2>Test SVG</h2>
+        <p>This is the SVG we're testing with:</p>
+        
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="gradient-test">
+                    <stop offset="0%" stop-color="red"></stop>
+                    <stop offset="100%" stop-color="blue"></stop>
+                </linearGradient>
+            </defs>
+            <rect x="10" y="10" width="180" height="180" fill="url(#gradient-test)" />
+        </svg>
+        
+        <pre><code>&lt;svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"&gt;
+    &lt;defs&gt;
+        &lt;linearGradient id="gradient-test"&gt;
+            &lt;stop offset="0%" stop-color="red"&gt;&lt;/stop&gt;
+            &lt;stop offset="100%" stop-color="blue"&gt;&lt;/stop&gt;
+        &lt;/linearGradient&gt;
+    &lt;/defs&gt;
+    &lt;rect x="10" y="10" width="180" height="180" fill="url(#gradient-test)" /&gt;
+&lt;/svg&gt;</code></pre>
+        
+        <div id="test-results" class="result">
+            <p>Test results will appear here...</p>
+        </div>
+    </div>
+
+    <!-- Load the domSelector library from unpkg CDN -->
+    <script src="https://unpkg.com/@asamuzakjp/dom-selector/dist/esm/index.js" type="module"></script>
+    
+    <!-- Browser test script -->
+    <script type="module">
+        // Import the domSelector library
+        import { DOMSelector } from 'https://unpkg.com/@asamuzakjp/dom-selector/dist/esm/index.js';
+        
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the test results container
+            const resultsContainer = document.getElementById('test-results');
+            resultsContainer.innerHTML = ''; // Clear previous results
+            
+            try {
+                // Function to display test results
+                function displayResult(testName, result, details = {}) {
+                    const testDiv = document.createElement('div');
+                    testDiv.innerHTML = `<h3>${testName}</h3>`;
+                    
+                    const resultText = result ? 'FOUND' : 'NOT FOUND';
+                    testDiv.innerHTML += `<p>Result: ${resultText}</p>`;
+                    
+                    if (details.error) {
+                        testDiv.innerHTML += `<p>Error: ${details.error}</p>`;
+                    }
+                    
+                    if (details.element && result) {
+                        testDiv.innerHTML += `<p>Element: &lt;${details.element.tagName.toLowerCase()}${details.element.id ? ` id="${details.element.id}"` : ''}&gt;</p>`;
+                    }
+                    
+                    testDiv.classList.add(result ? 'success' : 'failure');
+                    resultsContainer.appendChild(testDiv);
+                }
+                
+                // Test 1: Native querySelector
+                try {
+                    const nativeResult = document.querySelector('linearGradient');
+                    displayResult("Test 1: Native querySelector", nativeResult, { element: nativeResult });
+                } catch (error) {
+                    displayResult("Test 1: Native querySelector", false, { error: error.message });
+                }
+                
+                // Test 2: domSelector library
+                try {
+                    // Initialize domSelector with the window
+                    const domSelectorInstance = new DOMSelector(window);
+                    
+                    // Use domSelector to query for linearGradient
+                    const domSelectorResult = domSelectorInstance.querySelector('linearGradient', document);
+                    displayResult("Test 2: domSelector library", domSelectorResult, { element: domSelectorResult });
+                } catch (error) {
+                    displayResult("Test 2: domSelector library", false, { error: error.message });
+                }
+                
+                // Test 3: Direct SVG selection (control test)
+                try {
+                    const svg = document.querySelector('svg');
+                    const defs = svg.querySelector('defs');
+                    const linearGradient = defs.firstElementChild;
+                    
+                    const isLinearGradient = linearGradient && linearGradient.tagName.toLowerCase() === 'lineargradient';
+                    displayResult("Test 3: Direct SVG selection", isLinearGradient, { 
+                        element: linearGradient,
+                        error: !isLinearGradient ? "First child is not a linearGradient element" : null
+                    });
+                } catch (error) {
+                    displayResult("Test 3: Direct SVG selection", false, { error: error.message });
+                }
+                
+                // Summary
+                const summary = document.createElement('div');
+                summary.innerHTML = '<h3>Summary</h3>';
+                summary.innerHTML += '<p>If Test 1 fails but Test 3 passes, it confirms there is a bug in the native querySelector.</p>';
+                summary.innerHTML += '<p>If Test 2 fails but Test 3 passes, it confirms there is a bug in the domSelector library.</p>';
+                summary.innerHTML += '<p>If both Test 1 and Test 2 fail but Test 3 passes, it suggests this is a general issue with CSS selectors and SVG namespaces.</p>';
+                resultsContainer.appendChild(summary);
+                
+            } catch (error) {
+                resultsContainer.innerHTML = `<p class="failure">Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
