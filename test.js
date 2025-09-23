@@ -37,6 +37,20 @@ function logResult(testName, element) {
 
 console.log('=== domSelector linearGradient Bug Test ===');
 
+// Debugging output
+console.log("Debugging output")
+console.log("contentType", dom.window.document.contentType);
+console.log("documentElement.innerHTML", dom.window.document.documentElement.innerHTML);
+
+const dom2 = new JSDOM("", {
+  runScripts: "dangerously"
+});
+const doc = new dom2.window.DOMParser().parseFromString(html, "image/svg+xml");
+const domSelector = new DOMSelector(dom2.window);
+const result = domSelector.querySelector("linearGradient", doc);
+console.log("result.innerHTML", result.innerHTML);
+
+
 // Test 1: Native querySelector (should work)
 const nativeResult = document.querySelector('linearGradient');
 logResult('Native querySelector', nativeResult);
